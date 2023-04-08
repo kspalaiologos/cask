@@ -6,9 +6,8 @@ on:
  pull_request:
 
 jobs:
-  build-linux-x86_64:
+  build:
     runs-on: ubuntu-latest
-    environment: Main
 
     steps:
     - uses: actions/checkout@v3
