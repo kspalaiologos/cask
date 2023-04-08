@@ -42,6 +42,8 @@ public class CaskBootstrap {
         try {
             CaskClassLoader caskClassLoader = new CaskClassLoader(Objects.requireNonNull(CaskBootstrap.class.getClassLoader().getResourceAsStream(caskFile)));
             Class<?> mainClassObject = caskClassLoader.loadClass(mainClass);
+            Thread.currentThread().setContextClassLoader(caskClassLoader);
+            System.setProperty("java.system.class.loader", CaskClassLoader.class.getName());
             mainClassObject.getMethod("main", String[].class).invoke(null, (Object) args);
         } catch (Exception e) {
             throw new RuntimeException("Could not start Cask application.", e);

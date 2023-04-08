@@ -9,24 +9,14 @@ public class Handler extends URLStreamHandler {
     private String entryName;
     private int caskCode;
 
-    private final ClassLoader classLoader;
-
-    public Handler() {
-        this.classLoader = null;
-    }
-
-    public Handler(ClassLoader classLoader) {
-        this.classLoader = classLoader;
-    }
-
     @Override
     protected URLConnection openConnection(URL url) throws IOException {
         String spec = url.toString().substring(7);
 
-        int separator = spec.indexOf("!/");
+        int separator = spec.indexOf("/!");
 
         if (separator == -1) {
-            throw new MalformedURLException("no !/ found in url spec:" + spec);
+            throw new MalformedURLException("no /! found in url spec:" + spec);
         }
 
         caskCode = Integer.parseInt(spec.substring(1, separator++));
@@ -43,15 +33,13 @@ public class Handler extends URLStreamHandler {
 
             @Override
             public InputStream getInputStream() throws IOException {
-                if(classLoader != null)
-                    return classLoader.getResourceAsStream(entryName);
                 synchronized (CaskClassLoader.instances) {
                     CaskClassLoader.instances.clean();
                     for(var obj : CaskClassLoader.instances.values())
                         if(obj.hashCode() == caskCode)
                             return ((CaskClassLoader) obj).getResourceAsStream(entryName);
                 }
-                return null;
+                throw new IOException("CaskClassLoader not found");
             }
         };
     }

@@ -68,7 +68,7 @@ public class CaskClassLoader extends ClassLoader {
         if(file == null)
             return null;
         try {
-            return new URL(null, "cask://c" + cask.hashCode() + "!/" + name, new Handler(this));
+            return new URL(null, "cask://c" + hashCode() + "/!" + name);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
