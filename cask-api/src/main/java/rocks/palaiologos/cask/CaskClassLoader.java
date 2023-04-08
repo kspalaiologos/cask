@@ -1,30 +1,55 @@
 package rocks.palaiologos.cask;
 
-import rocks.palaiologos.cask.xz.XZInputStream;
-
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.WeakHashMap;
 
 public class CaskClassLoader extends ClassLoader {
+    private class ByteArray {
+        public byte[] data;
+        public ByteArray(byte[] data) {
+            this.data = data;
+        }
+    }
+
     private final SevenZFile cask;
+    private final HashMap<String, ByteArray> files = new HashMap<>();
+    public static final WeakBag instances = new WeakBag();
 
     public CaskClassLoader(String caskFile) throws IOException {
         super(CaskClassLoader.class.getClassLoader());
         SeekableInMemoryByteChannel caskChannel = new SeekableInMemoryByteChannel(new URL(caskFile).openStream().readAllBytes());
         cask = new SevenZFile(caskChannel);
+        cache();
     }
 
     public CaskClassLoader(URL caskFile) throws IOException {
         super(CaskClassLoader.class.getClassLoader());
         SeekableInMemoryByteChannel caskChannel = new SeekableInMemoryByteChannel(caskFile.openStream().readAllBytes());
         cask = new SevenZFile(caskChannel);
+        cache();
     }
 
     public CaskClassLoader(InputStream caskFile) throws IOException {
         super(CaskClassLoader.class.getClassLoader());
         SeekableInMemoryByteChannel caskChannel = new SeekableInMemoryByteChannel(caskFile.readAllBytes());
         cask = new SevenZFile(caskChannel);
+        cache();
+    }
+
+    private void cache() throws IOException {
+        for(var entry : cask.getEntries()) {
+            if(!entry.isDirectory())
+                files.put(entry.getName(), new ByteArray(cask.getInputStream(entry).readAllBytes()));
+        }
+        synchronized (instances) {
+            instances.clean();
+            instances.add(this);
+        }
     }
 
     @Override
@@ -37,12 +62,33 @@ public class CaskClassLoader extends ClassLoader {
         }
     }
 
+    @Override
+    protected URL findResource(String name) {
+        ByteArray file = files.get(name);
+        if(file == null)
+            return null;
+        try {
+            return new URL(null, "cask://c" + cask.hashCode() + "!/" + name, new Handler(this));
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public InputStream getResourceAsStream(String name) {
+        System.out.println("Requesting resource " + name);
+        ByteArray file = files.get(name);
+        if(file != null)
+            return new ByteArrayInputStream(file.data);
+        return null;
+    }
+
     private byte[] loadClassFromFile(String fileName) throws IOException, ClassNotFoundException {
         // Expecting fileName to be like org.example.Main
         String path = fileName.replace('.', '/') + ".class";
-        for(var entry : cask.getEntries())
-            if(entry.getName().equals(path))
-                return cask.getInputStream(entry).readAllBytes();
+        ByteArray file = files.get(path);
+        if(file != null)
+            return file.data;
         throw new ClassNotFoundException("Could not find class " + fileName);
     }
 }

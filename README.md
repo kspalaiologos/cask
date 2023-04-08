@@ -7,12 +7,14 @@ cask is a specialised class loader for Java applications capable of loading clas
 
 ## Getting started
 
-Start by building a fat (dependencies-included) jar of your project. Then, build the cask API and bundler. Bundle the fat JAR as follows:
+Start by building a fat (dependencies-included) jar of your project. Then, build the cask API. Bundle the fat JAR as follows:
 
 ```
 $ echo "Main-Class: org.example.Main" > MANIFEST
 $ echo "Cask-File: cask-example-0.1.cask" >> MANIFEST
-$ java -jar cask-bundler-0.1.jar my-app.jar cask-api-0.1.jar MANIFEST cask-example-0.1.jar
+$ ./bundle.sh my-app.jar cask-api-0.1.jar
+$ java -jar cask-api-0.1.jar
+[...]
 ```
 
 ## Acknowledgements
