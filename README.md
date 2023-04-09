@@ -26,6 +26,8 @@ $ java -jar cask-api-0.1.jar
 | Luaj 3.0.2se | 354,944 bytes | 234,843 bytes | 33% | 0.215s | 0.217s | 
 | Closure Compiler v20230228 | 13,725,200 bytes | 6,012,236 bytes | 56% | 1.471s | 1.768s |
 
+A zip file with all the benchmarks is available [here](https://b.cgas.io/psYE4g7cPRj4.zip).
+
 [^1]: cask does not load classes as-needed, the content of the JAR is instead cached to improve the performance at the cost of startup time.
 
 ## Acknowledgements
