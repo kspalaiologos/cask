@@ -18,15 +18,8 @@ jobs:
         cache: 'maven'
     - name: Build cask API
       run: mvn -B package --file cask-api/pom.xml
-    - name: Build cask bundler
-      run: mvn -B package --file cask-bundler/pom.xml
     - name: Upload the cask API artifact
       uses: actions/upload-artifact@v3.1.1
       with:
         name: cask-api-0.1.jar
         path: cask-api/target/cask-api-0.1.jar
-    - name: Upload the cask bundler artifact
-      uses: actions/upload-artifact@v3.1.1
-      with:
-        name: cask-bundler-0.1.jar
-        path: cask-bundler/target/cask-bundler-0.1.jar
