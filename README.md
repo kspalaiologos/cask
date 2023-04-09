@@ -36,7 +36,7 @@ In essence, the compression could be improved by using a split-stream context mi
 
 FP8, a generic PAQ8-derived compressor compresses ABCL v1.0.6 down to 1.4MB (compared to 2.2MB from LZMA), but its memory usage and performance characteristics make it unsuitable for the purpose of compressing JAR files. `.class` are currently all decompressed and cached when a new cask classloader is instantiated. The memory overhead could be mitigated by decompressing class files as needed, but solid archives (as used by cask) do not support fast random access. On-demand decompression would likely provide better memory usage and (in some cases) performance characteristics, but worse compression ratio. The file `Symbol.class` from ABCL v1.0.6 is compressed down by FP8 to 14.3KB from 97.4KB over 0.5s using 18MB of memory (compared to 29.5KB from LZMA). On smaller class files that admittedly tend to be more common (~2KB), the compression ratio difference is usually below 400B.
 
-Further research could involve using a tool like Krakatau to disassemble a `.class` file, then separate the streams in it, 
+Further research could involve using a tool like Krakatau to disassemble a `.class` file, then separate the streams in it. Small scale tests show that this helps to bring down the size of `Lisp.class` from 63.5KB to 13KB (from 18KB FP8), compared to LZMA 23.1KB.
 
 ## Acknowledgements
 
