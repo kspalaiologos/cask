@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.WeakHashMap;
 
 public class CaskClassLoader extends ClassLoader {
     private class ByteArray {
@@ -56,6 +55,8 @@ public class CaskClassLoader extends ClassLoader {
     public Class findClass(String name) throws ClassNotFoundException {
         try {
             byte[] b = loadClassFromFile(name);
+            if(b == null)
+                return getParent().loadClass(name);
             return defineClass(name, b, 0, b.length);
         } catch (IOException e) {
             throw new ClassNotFoundException("Could not find class " + name, e);
@@ -66,7 +67,7 @@ public class CaskClassLoader extends ClassLoader {
     protected URL findResource(String name) {
         ByteArray file = files.get(name);
         if(file == null)
-            return null;
+            return getParent().getResource(name);
         try {
             return new URL(null, "cask://c" + hashCode() + "/!" + name);
         } catch (MalformedURLException e) {
@@ -76,19 +77,18 @@ public class CaskClassLoader extends ClassLoader {
 
     @Override
     public InputStream getResourceAsStream(String name) {
-        System.out.println("Requesting resource " + name);
         ByteArray file = files.get(name);
         if(file != null)
             return new ByteArrayInputStream(file.data);
-        return null;
+        return getParent().getResourceAsStream(name);
     }
 
-    private byte[] loadClassFromFile(String fileName) throws IOException, ClassNotFoundException {
+    private byte[] loadClassFromFile(String fileName) throws IOException {
         // Expecting fileName to be like org.example.Main
         String path = fileName.replace('.', '/') + ".class";
         ByteArray file = files.get(path);
         if(file != null)
             return file.data;
-        throw new ClassNotFoundException("Could not find class " + fileName);
+        return null;
     }
 }

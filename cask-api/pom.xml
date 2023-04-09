@@ -37,6 +37,7 @@
                         <option>-forceprocessing</option>
                         <option>-keep class rocks.palaiologos.cask.CaskBootstrap { *; }</option>
                         <option>-keep class rocks.palaiologos.cask.CaskClassLoader { *; }</option>
+                        <option>-keep class rocks.palaiologos.cask.CaskURLHandlerProvider { *; }</option>
                         <option>-keepclasseswithmembers public class * { public static void main(java.lang.String[]); }</option>
                         <option>-keepclassmembers enum  * { public static **[] values(); public static ** valueOf(java.lang.String); }</option>
                         <option>-keepclasseswithmembers,includedescriptorclasses,allowshrinking class * { native &lt;methods&gt;; }</option>
