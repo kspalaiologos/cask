@@ -30,6 +30,41 @@ A zip file with all the benchmarks is available [here](https://b.cgas.io/psYE4g7
 
 [^1]: cask does not load classes as-needed, the content of the JAR is instead cached to improve the performance at the cost of startup time.
 
+## Q & A
+
+- How can I further improve the compression that cask provides?
+
+Use [Proguard](https://www.guardsquare.com/proguard) or other tools that do a variety of things, including stripping line/local variable tables, removing unused methods and classes, optimising and minifying the bytecode (obfuscating - replacing names with abbreviated variants; repackaging classes to a single package)
+
+- My application takes a long to unpack.
+
+This could happen for a variety of reasons. cask will automatically decompress and cache all `.class` files and resources for fast access (as the main cask archive is solid, which doesn't yield to good performance) increasing the startup time. There are a few solutions. One of them is modularising your application, so that rarely used parts of the program are diverted into separate `.cask` files and loaded on demand using a classloader instantiated as `new CaskClassLoader(CaskBootstrap.class.getClassLoader().getResourceAsStream("my-module.cask"));`. The auxiliary casks may be placed somewhere else, not necessarily in the jar file. Such cask files are loaded using the classloader `new CaskClassLoader("plugins/my-module.cask");`. Obviously, you should try to minimise the amount of cask classloaders that your application instantiates, because every new cask classloader must cache the entire `.cask` file.
+
+- I am getting an error regarding cask decompression, but I am sure that the cask is not corrupted.
+
+The 7z/LZMA implementation is not perfect and does not handle some things; it is advised to keep using `7z -m0=lzma2 -mx=7`.
+
+- The application fails to start.
+
+Make sure that the `cask-api` jar contains the `MANIFEST` file, which points to a valid `Main-Class` inside of the `Cask-File`, e.g. if the root directory of `cask-api.jar` contains the file `abcl.cask`, then the `MANIFEST` file should be as follows:
+
+```
+Main-Class: org.armedbear.lisp.Main
+Cask-File: abcl.cask
+```
+
+- The application falls back to the default classloader.
+
+This tends to happen on some bootleg JVMs (e.g. Temurin) when class files have been compiled separately from the rest of application (particularly when e.g. the classfile versions differ drastically).
+
+- I would like to use Service Provider Interface.
+
+Put any auxiliary metadata _except_ the MANIFEST in META-INF of the `cask-api` jar file.
+
+- I would like to exclude some of the classes from being cask-compressed.
+
+You could put them in a separate jar file and put it in the classpath, or unpack the jar file into the `cask-api` root (making sure to not overwrite anything in META-INF).
+
 ## Potential improvements
 
 In essence, the compression could be improved by using a split-stream context mixing compressor tuned for `.class` files.
